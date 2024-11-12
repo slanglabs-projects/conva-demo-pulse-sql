@@ -56,11 +56,15 @@ def preprocess_query(query):
 
 
 def run_db_query(query: str, engine) -> list:
-    if not query:
-        return []
+    try:
+        if not query:
+            return []
 
-    query = preprocess_query(query)
-    with engine.connect() as connection:
-        result = connection.execute(text(query))
-        rows = result.fetchall()
-        return [row._mapping for row in rows]  # noqa
+        query = preprocess_query(query)
+        with engine.connect() as connection:
+            result = connection.execute(text(query))
+            rows = result.fetchall()
+            return [row._mapping for row in rows]  # noqa
+    except (Exception,) as e:
+        print("Error running query: {}".format(e))
+        return []

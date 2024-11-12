@@ -1,15 +1,14 @@
 import json
 import os
 
-import random
 import streamlit as st
 import plotly.graph_objects as go
-import plotly.express as px
 
 import pandas as pd
 from sqlalchemy import create_engine
 
 from conva import invoke_conva_capabilities
+from viz import create_plot
 
 # Read CSV into a pandas DataFrame
 tpath = "data/pp_transactions.csv"
@@ -53,66 +52,20 @@ def get_bot_response(user_input, pb):
     summary = summary_response.message
 
     graph_data = {
-        "description": graph_response.parameters.get("description"),
-        "structure": graph_response.parameters.get("structure"),
-        "data": graph_response.parameters.get("data"),
+        "type": graph_response.parameters.get("type"),
+        "xaxis_title": graph_response.parameters.get("xaxis_title"),
+        "yaxis_title": graph_response.parameters.get("yaxis_title"),
+        "legends": graph_response.parameters.get("legends"),
+        "series_data": graph_response.parameters.get("series_data"),
     }
     return summary, graph_data
 
 
-def output2df(output):
-    return pd.DataFrame(output["data"])
-
-
-def suggest_visualizations(df, _description):
-    """
-    Suggest appropriate visualizations based on the dataframe structure.
-    """
-    num_columns = df.select_dtypes(include=["int64", "float64"]).columns
-    cat_columns = df.select_dtypes(include=["object", "category"]).columns
-
-    suggestions = []
-
-    if len(num_columns) >= 1 and len(cat_columns) >= 1:
-        suggestions.append(("Bar Chart", cat_columns[0], num_columns[0]))
-
-    return suggestions
-
-
-def create_visualization(df, chart_type, x_column, y_column):
-    """
-    Create a Plotly visualization based on the selected chart type and columns.
-    """
-    if chart_type == "Bar Chart":
-        fig = px.bar(df, x=x_column, y=y_column)
-    elif chart_type == "Scatter Plot":
-        fig = px.scatter(df, x=x_column, y=y_column)
-    elif chart_type == "Line Chart":
-        fig = px.line(df, x=x_column, y=y_column)
-    elif chart_type == "Histogram":
-        fig = px.histogram(df, x=x_column)
-    elif chart_type == "Box Plot":
-        fig = px.box(df, x=x_column, y=y_column)
-    elif chart_type == "Pie Chart":
-        fig = px.bar(df, x=x_column, y=y_column)
-    else:
-        fig = go.Figure()
-
-    return fig
-
-
 def generate_graph(data):
-    df = output2df(data)
-    print(df)
-    suggestions = suggest_visualizations(df, data.get("description", ""))
-    if suggestions:
-        # select a random suggestion
-        chart_type, x_column, y_column = random.choice(suggestions)
-        fig = create_visualization(df, chart_type, x_column, y_column)
-    else:
-        fig = go.Figure()
-
-    return fig
+    try:
+        return create_plot(data)
+    except (Exception,):
+        return go.Figure()
 
 
 st.markdown(
@@ -157,7 +110,7 @@ def process_query(prompt):
         placeholder.empty()
 
         st.markdown(response)
-        if graph_data.get("data"):
+        if graph_data.get("series_data"):
             fig = generate_graph(graph_data)
             st.plotly_chart(fig, use_container_width=True)
 

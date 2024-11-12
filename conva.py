@@ -8,17 +8,18 @@ DEBUG = True
 client = ConvaAI(
     assistant_id=st.secrets.conva_assistant_id,
     api_key=st.secrets.conva_api_key,
-    assistant_version="17.0.0",
+    assistant_version="6.0.0",
 )
 
 
 def invoke_query_creation(query, history="{}"):
     response = client.invoke_capability_name(
         query=query,
-        capability_name="sql_query_creation_v0",
+        capability_name="sql_query_generation",
         history=history,
         stream=False,
         timeout=600,
+        llm_key="openai-gpt-4o-2024-08-06",
     )
 
     if DEBUG:
@@ -56,28 +57,28 @@ def invoke_data_analysis(query_response, query, engine):
 
     response = client.invoke_capability_name(
         query=query,
-        capability_name="data_analysis_report",
-        capability_context={"data_analysis_report": context},
+        capability_name="data_analysis",
+        capability_context={"data_analysis": context},
         stream=False,
         timeout=600,
     )
 
     if DEBUG:
-        print("data_summarization response: {}\n\n".format(response))
+        print("data_analysis response: {}\n\n".format(response))
     return response
 
 
 def invoke_data_visualization(analysis_response, query):
     response = client.invoke_capability_name(
         query=query,
-        capability_name="data_interpretation_for_graphing_v0",
-        capability_context={"data_interpretation_for_graphing_v0": analysis_response.message},
+        capability_name="data_visualization",
+        capability_context={"data_visualization": analysis_response.message},
         stream=False,
         timeout=600,
     )
 
     if DEBUG:
-        print("data_interpretation_for_graphing response: {}\n\n".format(response))
+        print("data_visualization response: {}\n\n".format(response))
 
     return response
 
