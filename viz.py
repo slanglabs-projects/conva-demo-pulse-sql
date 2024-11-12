@@ -91,9 +91,14 @@ def create_plot(data_dict: Dict[str, Any]) -> go.Figure:
                 )
             )
         else:
+            # Get all available keys from the first data point
+            available_keys = list(first_val.keys())
+
             for idx, legend in enumerate(data_dict["legends"]):
                 if isinstance(first_val, dict):
-                    y_values = [to_float(data_dict["series_data"][x][legend]) for x in x_values]
+                    # Use positional mapping instead of exact key matching
+                    key = available_keys[idx]
+                    y_values = [to_float(data_dict["series_data"][x][key]) for x in x_values]
                 else:
                     y_values = [to_float(data_dict["series_data"][x][idx]) for x in x_values]
 
@@ -120,7 +125,11 @@ def create_plot(data_dict: Dict[str, Any]) -> go.Figure:
             showgrid=True,
             gridcolor='rgba(128, 128, 128, 0.2)',
             showline=True,
-            color='white'
+            color='white',
+            tickmode='array',
+            ticktext=x_values,
+            tickvals=x_values,
+            type='category'
         ),
         yaxis=dict(
             showgrid=True,
