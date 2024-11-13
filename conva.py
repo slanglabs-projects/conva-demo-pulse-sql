@@ -8,7 +8,7 @@ DEBUG = True
 client = ConvaAI(
     assistant_id=st.secrets.conva_assistant_id,
     api_key=st.secrets.conva_api_key,
-    assistant_version="6.0.0",
+    assistant_version="7.0.0",
 )
 
 
